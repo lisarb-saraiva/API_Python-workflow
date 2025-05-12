@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 books = []
-id_counter = 1
+next_id = 1
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -13,10 +13,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(books).encode())
         elif self.path.startswith('/books/'):
             book_id = int(self.path.split('/')[-1])
-            book = next((b for b in books if b['id'] == book_id), None)
+            book = next((book for book in books if book['id'] == book_id), None)
             if book:
                 self.send_response(200)
-                self.send_header('Content-type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps(book).encode())
             else:
@@ -24,19 +23,23 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
     def do_POST(self):
-        global id_counter
+        global next_id
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
-        book = json.loads(post_data)
-        book['id'] = id_counter
-        books.append(book)
-        id_counter += 1
+        book_data = json.loads(post_data)
+        book_data['id'] = next_id
+        books.append(book_data)
+        next_id += 1
         self.send_response(201)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(book).encode())
+        self.wfile.write(json.dumps(book_data).encode())
 
-if __name__ == '__main__':
-    server = HTTPServer(('localhost', 8000), RequestHandler)
-    print("Servidor rodando em http://localhost:8000")
-    server.serve_forever()
+def run(server_class=HTTPServer, handler_class=RequestHandler, port=8000):
+    server_address = ('', port)
+    httpd = server_class(server_address, handler_class)
+    print(f'Starting server on port {port}...')
+    httpd.serve_forever()
+
+if _name_ == "_main_":
+    run()
