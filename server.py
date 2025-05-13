@@ -41,5 +41,5 @@ def run(server_class=HTTPServer, handler_class=RequestHandler, port=4000):
     print(f'Starting server on port {port}...')
     httpd.serve_forever()
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     run()
